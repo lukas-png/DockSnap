@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM maven:3.9-eclipse-temurin-22 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 WORKDIR /app
 COPY pom.xml .
 # Download dependencies in a separate layer for caching
@@ -8,7 +8,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -q
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:22-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 # Install tar and borgbackup for backup engines
