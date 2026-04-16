@@ -27,6 +27,7 @@ USER docksnap
 ENV PORT=8080
 ENV BACKUP_DIR=/backups
 ENV JOBS_FILE=/config/jobs.json
+ENV API_ENABLED=true
 
 EXPOSE 8080
 

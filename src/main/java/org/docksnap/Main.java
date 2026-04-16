@@ -83,7 +83,11 @@ public class Main {
         // --- HTTP API ---
         ApiServer apiServer = new ApiServer(config.port(), jobConfigStore,
                 jobRunner, runRepository, logBuffer);
-        apiServer.start();
+        if (config.apiEnabled()) {
+            apiServer.start();
+        } else {
+            System.out.println("[Main] API disabled (API_ENABLED=false). Scheduler only.");
+        }
 
         // --- Graceful shutdown ---
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -93,6 +97,7 @@ public class Main {
             jobRunner.shutdown();
         }, "shutdown-hook"));
 
-        System.out.println("[Main] DockSnap running. API on :" + config.port() + ", jobs: " + config.jobsFile());
+        System.out.println("[Main] DockSnap running. Jobs: " + config.jobsFile()
+                + (config.apiEnabled() ? ", API on :" + config.port() : ", API disabled"));
     }
 }

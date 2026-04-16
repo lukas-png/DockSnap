@@ -1,6 +1,6 @@
 services:
   docksnap:
-    build: .
+    image: ghcr.io/lukas-png/docksnap:latest
     container_name: docksnap
     restart: unless-stopped
     ports:
@@ -31,3 +31,4 @@ services:
       PORT: "8080"
       BACKUP_DIR: "/backups"
       JOBS_FILE: "/config/jobs.json"
+      API_ENABLED: "true"
