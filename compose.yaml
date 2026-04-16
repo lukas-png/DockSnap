@@ -1,0 +1,33 @@
+services:
+  docksnap:
+    build: .
+    container_name: docksnap
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Docker socket — required so DockSnap can stop/start other containers
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      # Job definitions — edit jobs.json on the host, restart to reload
+      - ./jobs.json:/config/jobs.json:ro
+
+      # Backup output directory (TAR artifacts land here on the host)
+      - ./backups:/backups
+
+      # ---------------------------------------------------------------
+      # Host directories to back up.
+      # Mount them read-only here, then reference the RIGHT-HAND path
+      # (e.g. /data/nextcloud) in the "paths" field of your jobs.json.
+      # ---------------------------------------------------------------
+      # - /var/nextcloud:/data/nextcloud:ro
+      # - /var/lib/postgresql/data:/data/postgresql:ro
+      # - /home/user/appdata:/data/appdata:ro
+
+      # Optional: SSH key + known_hosts for Borg over SSH
+      # - ./secrets/id_rsa:/secrets/id_rsa:ro
+      # - ./secrets/known_hosts:/secrets/known_hosts:ro
+    environment:
+      PORT: "8080"
+      BACKUP_DIR: "/backups"
+      JOBS_FILE: "/config/jobs.json"

@@ -1,0 +1,46 @@
+{
+  "jobs": [
+    {
+      "id": "postgres-tar",
+      "name": "PostgreSQL TAR Backup",
+      "mode": "TAR",
+      "paths": ["/var/lib/postgresql/data"],
+      "stopContainers": ["postgres"],
+      "startContainers": ["postgres"],
+      "filenamePrefix": "postgres",
+      "borg": null,
+      "upload": null,
+      "schedule": "0 2 * * *"
+    },
+    {
+      "id": "borg-offsite",
+      "name": "Borg Offsite Backup",
+      "mode": "BORG",
+      "paths": ["/var/lib/postgresql/data", "/var/data/uploads"],
+      "stopContainers": ["postgres", "app"],
+      "startContainers": ["postgres", "app"],
+      "filenamePrefix": null,
+      "borg": {
+        "repo": "borg@backup.example.com:/mnt/repo",
+        "archivePrefix": "myserver",
+        "compression": "lz4",
+        "sshKeyPath": "/secrets/id_rsa",
+        "knownHostsPath": "/secrets/known_hosts"
+      },
+      "upload": null,
+      "schedule": "30 3 * * 0"
+    },
+    {
+      "id": "manual-only",
+      "name": "Manual Trigger Only",
+      "mode": "TAR",
+      "paths": ["/var/data/uploads"],
+      "stopContainers": [],
+      "startContainers": [],
+      "filenamePrefix": "uploads",
+      "borg": null,
+      "upload": null,
+      "schedule": null
+    }
+  ]
+}
