@@ -32,3 +32,4 @@ services:
       BACKUP_DIR: "/backups"
       JOBS_FILE: "/config/jobs.json"
       API_ENABLED: "true"
+      # NTFY_URL: "https://ntfy.sh"   # set to your ntfy server; per-job topic set in jobs.json

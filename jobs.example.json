@@ -31,7 +31,8 @@
         "encryption": "none"
       },
       "upload": null,
-      "schedule": "30 3 * * 0"
+      "schedule": "30 3 * * 0",
+      "ntfyTopic": "my-backups"
     },
     {
       "id": "manual-only",

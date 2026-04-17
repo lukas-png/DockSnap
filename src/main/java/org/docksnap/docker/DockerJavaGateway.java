@@ -1,6 +1,7 @@
 package org.docksnap.docker;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.exception.NotModifiedException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,11 +24,19 @@ public class DockerJavaGateway implements DockerGateway {
 
     @Override
     public void stopContainerByName(String name, int timeoutSeconds) {
-        docker.stopContainerCmd(name).withTimeout(timeoutSeconds).exec();
+        try {
+            docker.stopContainerCmd(name).withTimeout(timeoutSeconds).exec();
+        } catch (NotModifiedException e) {
+            // already stopped — not an error
+        }
     }
 
     @Override
     public void startContainerByName(String name) {
-        docker.startContainerCmd(name).exec();
+        try {
+            docker.startContainerCmd(name).exec();
+        } catch (NotModifiedException e) {
+            // already running — not an error
+        }
     }
 }

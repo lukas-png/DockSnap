@@ -8,6 +8,7 @@ import org.docksnap.domain.Run;
 import org.docksnap.run.LogBuffer;
 import org.docksnap.run.RunLogger;
 import org.docksnap.run.RunRepository;
+import org.docksnap.notify.NtfyNotifier;
 import org.docksnap.upload.Uploader;
 import org.docksnap.upload.UploaderFactory;
 
@@ -23,6 +24,7 @@ public class JobRunner {
     private final RunRepository runs;
     private final LogBuffer logs;
     private final UploaderFactory uploaderFactory;
+    private final NtfyNotifier notifier;
     private final ExecutorService executor;
     private final RunLogger runLogger;
 
@@ -30,12 +32,14 @@ public class JobRunner {
                      DockerGateway docker,
                      RunRepository runs,
                      LogBuffer logs,
-                     UploaderFactory uploaderFactory) {
+                     UploaderFactory uploaderFactory,
+                     NtfyNotifier notifier) {
         this.engineFactory = engineFactory;
         this.docker = docker;
         this.runs = runs;
         this.logs = logs;
         this.uploaderFactory = uploaderFactory;
+        this.notifier = notifier;
         this.executor = Executors.newFixedThreadPool(4, r -> {
             Thread t = new Thread(r, "jobrunner");
             t.setDaemon(true);
@@ -95,6 +99,7 @@ public class JobRunner {
             e.printStackTrace();
             startContainers(job, runId);
             runs.update(runs.find(runId).failed(detail));
+            notifier.notifyFailure(job, detail);
             return;
         }
 
@@ -112,6 +117,7 @@ public class JobRunner {
 
         // 5. Mark success
         runs.update(runs.find(runId).success(result.artifact(), result.bytes()));
+        notifier.notifySuccess(job, result.artifact());
         runLogger.info(runId, "Job finished successfully.");
     }
 

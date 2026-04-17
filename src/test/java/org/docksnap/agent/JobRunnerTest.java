@@ -76,12 +76,12 @@ class JobRunnerTest {
     private JobRunner buildRunner(BackupEngine engine) {
         BackupEngineFactory factory = new BackupEngineFactory(
                 Map.of(BackupMode.TAR, engine, BackupMode.BORG, engine));
-        return new JobRunner(factory, docker, runs, logs, new UploaderFactory());
+        return new JobRunner(factory, docker, runs, logs, new UploaderFactory(), new org.docksnap.notify.NtfyNotifier(null));
     }
 
     private Job job(String id, List<String> stop, List<String> start) {
         return new Job(id, "Test Job", BackupMode.TAR, List.of("/data"),
-                stop, start, "prefix", null, null, null);
+                stop, start, "prefix", null, null, null, null);
     }
 
     private Run waitForCompletion(String runId) throws InterruptedException {

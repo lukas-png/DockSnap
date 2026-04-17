@@ -16,12 +16,14 @@ import org.docksnap.backup.BorgBackupEngine;
 import org.docksnap.backup.TarBackupEngine;
 import org.docksnap.config.AppConfig;
 import org.docksnap.config.JobConfigStore;
+import org.docksnap.config.StartupValidator;
 import org.docksnap.docker.DockerJavaGateway;
 import org.docksnap.domain.BackupMode;
 import org.docksnap.http.ApiServer;
 import org.docksnap.proc.ProcessCommandRunner;
 import org.docksnap.run.InMemoryRunRepository;
 import org.docksnap.run.LogBuffer;
+import org.docksnap.notify.NtfyNotifier;
 import org.docksnap.upload.UploaderFactory;
 
 import java.time.Duration;
@@ -42,6 +44,9 @@ public class Main {
 
         // --- Job configuration ---
         JobConfigStore jobConfigStore = new JobConfigStore(config.jobsFile(), om);
+
+        // --- Startup validation ---
+        new StartupValidator().validate(config, jobConfigStore.list());
 
         // --- Docker client (connects to DOCKER_HOST or /var/run/docker.sock) ---
         var dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
@@ -72,9 +77,12 @@ public class Main {
         // --- Upload ---
         UploaderFactory uploaderFactory = new UploaderFactory();
 
+        // --- Notifications ---
+        NtfyNotifier notifier = new NtfyNotifier(config.ntfyUrl());
+
         // --- Job runner (async execution) ---
         JobRunner jobRunner = new JobRunner(engineFactory, dockerGateway,
-                runRepository, logBuffer, uploaderFactory);
+                runRepository, logBuffer, uploaderFactory, notifier);
 
         // --- Cron scheduler ---
         JobScheduler scheduler = new JobScheduler(jobConfigStore, jobRunner);

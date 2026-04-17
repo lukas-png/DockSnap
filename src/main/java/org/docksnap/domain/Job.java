@@ -12,7 +12,8 @@ public record Job(
         String filenamePrefix,
         BorgOptions borg,
         UploadTarget upload,
-        String schedule
+        String schedule,
+        String ntfyTopic
 ) {
     public record BorgOptions(
             String repo,

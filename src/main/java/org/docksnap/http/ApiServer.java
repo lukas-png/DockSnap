@@ -96,6 +96,24 @@ public class ApiServer {
             }
         });
 
+        app.get("/jobs/{id}/archives", ctx -> {
+            String id = ctx.pathParam("id");
+            Job job = configStore.getById(id);
+            if (job == null) {
+                ctx.status(404).json(Map.of("error", "Job not found: " + id));
+                return;
+            }
+            if (job.mode() != BackupMode.BORG) {
+                ctx.status(400).json(Map.of("error", "Archives only available for BORG jobs"));
+                return;
+            }
+            try {
+                ctx.json(borgEngine.listArchives(job));
+            } catch (Exception e) {
+                ctx.status(502).json(Map.of("error", e.getMessage()));
+            }
+        });
+
         app.post("/jobs/{id}/keyscan", ctx -> {
             String id = ctx.pathParam("id");
             Job job = configStore.getById(id);

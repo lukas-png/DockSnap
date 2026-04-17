@@ -1,5 +1,7 @@
 package org.docksnap.backup;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.docksnap.domain.BackupResult;
 import org.docksnap.domain.Job;
 import org.docksnap.proc.CommandRunner;
@@ -87,6 +89,33 @@ public class BorgBackupEngine implements BackupEngine {
         return output;
     }
 
+    public List<Map<String, Object>> listArchives(Job job) throws Exception {
+        if (job.borg() == null || job.borg().repo() == null || job.borg().repo().isBlank()) {
+            throw new IllegalArgumentException("No borg config on job " + job.id());
+        }
+        Map<String, String> env = buildEnv(job.borg());
+        List<String> lines = new ArrayList<>();
+        runner.run(new CommandSpec(List.of("borg", "list", "--json", job.borg().repo()), env), lines::add);
+      
+        StringBuilder json = new StringBuilder();
+        boolean inJson = false;
+        for (String line : lines) {
+            if (!inJson && line.trim().startsWith("{")) inJson = true;
+            if (inJson) json.append(line).append('\n');
+        }
+        JsonNode root = new ObjectMapper().readTree(json.toString());
+        List<Map<String, Object>> archives = new ArrayList<>();
+        for (JsonNode a : root.path("archives")) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("name",  a.path("name").asText());
+            entry.put("start", a.path("start").asText());
+            entry.put("end",   a.path("end").asText());
+            entry.put("id",    a.path("id").asText());
+            archives.add(entry);
+        }
+        return archives;
+    }
+
     private void ensureKnownHosts(Job job, String runId, RunLogger log) throws Exception {
         Job.BorgOptions borg = job.borg();
         if (borg == null || borg.knownHostsPath() == null || borg.knownHostsPath().isBlank()) return;
@@ -127,18 +156,22 @@ public class BorgBackupEngine implements BackupEngine {
     }
 
     private Map<String, String> buildEnv(Job.BorgOptions borg) {
+        Map<String, String> env = new HashMap<>();
+        env.put("BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK", "yes");
+
         if (borg.sshKeyPath() == null || borg.sshKeyPath().isBlank()) {
-            return Map.of();
+            return env;
         }
         StringBuilder sshCmd = new StringBuilder("ssh -i ").append(borg.sshKeyPath());
         if (borg.sshPort() != null) {
             sshCmd.append(" -p ").append(borg.sshPort());
         }
-        sshCmd.append(" -o StrictHostKeyChecking=yes");
+        sshCmd.append(" -o StrictHostKeyChecking=accept-new");
         if (borg.knownHostsPath() != null && !borg.knownHostsPath().isBlank()) {
             sshCmd.append(" -o UserKnownHostsFile=").append(borg.knownHostsPath());
         }
-        return Map.of("BORG_RSH", sshCmd.toString());
+        env.put("BORG_RSH", sshCmd.toString());
+        return env;
     }
 
     private String parseHost(String repo) {
