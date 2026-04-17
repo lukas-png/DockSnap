@@ -33,7 +33,7 @@ public class NtfyNotifier {
         try {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/" + job.ntfyTopic()))
-                    .header("X-Title", "DockSnap \u2014 " + job.name())
+                    .header("X-Title", "DockSnap - " + job.name())
                     .header("X-Priority", priority)
                     .header("X-Tags", tags)
                     .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))

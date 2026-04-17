@@ -15,7 +15,7 @@ class UploaderFactoryTest {
     private Job jobWithUpload(String type, String uri) {
         Job.UploadTarget upload = (type == null) ? null : new Job.UploadTarget(type, uri);
         return new Job("j1", "Job", BackupMode.TAR, List.of(), List.of(), List.of(),
-                "prefix", null, upload, null);
+                "prefix", null, upload, null, null);
     }
 
     @Test

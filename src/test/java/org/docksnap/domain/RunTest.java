@@ -11,7 +11,7 @@ class RunTest {
     private static Job job(String id, List<String> stopContainers) {
         return new Job(id, "Test Job", BackupMode.TAR,
                 List.of("/data"), stopContainers, List.of(), "prefix",
-                null, null, "0 2 * * *");
+                null, null, "0 2 * * *", null);
     }
 
     @Test

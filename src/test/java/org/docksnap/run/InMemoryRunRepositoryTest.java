@@ -20,7 +20,7 @@ class InMemoryRunRepositoryTest {
     void setUp() {
         repo = new InMemoryRunRepository();
         job = new Job("j1", "Job", BackupMode.TAR, List.of("/data"),
-                List.of(), List.of(), "prefix", null, null, null);
+                List.of(), List.of(), "prefix", null, null, null, null);
     }
 
     @Test

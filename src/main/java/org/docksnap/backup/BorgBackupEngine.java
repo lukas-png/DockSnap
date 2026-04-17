@@ -96,7 +96,7 @@ public class BorgBackupEngine implements BackupEngine {
         Map<String, String> env = buildEnv(job.borg());
         List<String> lines = new ArrayList<>();
         runner.run(new CommandSpec(List.of("borg", "list", "--json", job.borg().repo()), env), lines::add);
-      
+        // skip SSH/remote warning lines that precede the JSON object
         StringBuilder json = new StringBuilder();
         boolean inJson = false;
         for (String line : lines) {

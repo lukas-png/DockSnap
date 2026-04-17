@@ -32,7 +32,7 @@ class BorgBackupEngineTest {
                         String sshKey, String knownHosts, List<String> paths) {
         Job.BorgOptions borg = new Job.BorgOptions(repo, archivePrefix, compression, sshKey, knownHosts, null, null, null);
         return new Job(id, "Borg Job", BackupMode.BORG, paths,
-                List.of(), List.of(), null, borg, null, null);
+                List.of(), List.of(), null, borg, null, null, null);
     }
 
     @Test
@@ -112,7 +112,7 @@ class BorgBackupEngineTest {
     void backup_nullBorgOptions_throwsIllegalArgument() {
         BorgBackupEngine engine = new BorgBackupEngine((spec, sink) -> new CommandResult(0));
         Job job = new Job("j1", "Job", BackupMode.BORG, List.of("/data"),
-                List.of(), List.of(), null, null, null, null);
+                List.of(), List.of(), null, null, null, null, null);
 
         assertThrows(IllegalArgumentException.class,
                 () -> engine.backup(job, "r1", NO_OP_LOGGER));

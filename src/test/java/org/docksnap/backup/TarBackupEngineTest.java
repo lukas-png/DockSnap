@@ -28,7 +28,7 @@ class TarBackupEngineTest {
 
     private Job tarJob(String id, String prefix, List<String> paths) {
         return new Job(id, "Tar Job", BackupMode.TAR, paths,
-                List.of(), List.of(), prefix, null, null, null);
+                List.of(), List.of(), prefix, null, null, null, null);
     }
 
     /**
