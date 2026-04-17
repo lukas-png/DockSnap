@@ -25,7 +25,10 @@
         "archivePrefix": "myserver",
         "compression": "lz4",
         "sshKeyPath": "/secrets/id_rsa",
-        "knownHostsPath": "/secrets/known_hosts"
+        "knownHostsPath": "/secrets/known_hosts",
+        "sshPort": 22,
+        "keep": 10,
+        "encryption": "none"
       },
       "upload": null,
       "schedule": "30 3 * * 0"

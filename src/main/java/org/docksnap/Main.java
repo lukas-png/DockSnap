@@ -67,7 +67,7 @@ public class Main {
 
         // --- Run tracking ---
         InMemoryRunRepository runRepository = new InMemoryRunRepository();
-        LogBuffer logBuffer = new LogBuffer();
+        LogBuffer logBuffer = new LogBuffer(config.backupDir().resolve("logs"));
 
         // --- Upload ---
         UploaderFactory uploaderFactory = new UploaderFactory();
@@ -82,7 +82,7 @@ public class Main {
 
         // --- HTTP API ---
         ApiServer apiServer = new ApiServer(config.port(), jobConfigStore,
-                jobRunner, runRepository, logBuffer);
+                jobRunner, runRepository, logBuffer, borgEngine);
         if (config.apiEnabled()) {
             apiServer.start();
         } else {

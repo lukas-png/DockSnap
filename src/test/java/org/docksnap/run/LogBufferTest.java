@@ -13,7 +13,7 @@ class LogBufferTest {
 
     @BeforeEach
     void setUp() {
-        buffer = new LogBuffer();
+        buffer = new LogBuffer(null);
     }
 
     @Test

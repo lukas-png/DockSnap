@@ -30,7 +30,7 @@ class BorgBackupEngineTest {
 
     private Job borgJob(String id, String repo, String archivePrefix, String compression,
                         String sshKey, String knownHosts, List<String> paths) {
-        Job.BorgOptions borg = new Job.BorgOptions(repo, archivePrefix, compression, sshKey, knownHosts);
+        Job.BorgOptions borg = new Job.BorgOptions(repo, archivePrefix, compression, sshKey, knownHosts, null, null, null);
         return new Job(id, "Borg Job", BackupMode.BORG, paths,
                 List.of(), List.of(), null, borg, null, null);
     }
@@ -44,7 +44,8 @@ class BorgBackupEngineTest {
 
         BackupResult result = engine.backup(job, "r1", NO_OP_LOGGER);
 
-        List<String> argv = captured.get(0).argv();
+        CommandSpec createCmd = captured.stream().filter(c -> c.argv().contains("create")).findFirst().orElseThrow();
+        List<String> argv = createCmd.argv();
         assertEquals("borg", argv.get(0));
         assertEquals("create", argv.get(1));
         assertTrue(argv.contains("--stats"));
@@ -63,7 +64,8 @@ class BorgBackupEngineTest {
 
         engine.backup(job, "r1", NO_OP_LOGGER);
 
-        String target = captured.get(0).argv().stream()
+        CommandSpec createCmd = captured.stream().filter(c -> c.argv().contains("create")).findFirst().orElseThrow();
+        String target = createCmd.argv().stream()
                 .filter(a -> a.contains("::"))
                 .findFirst().orElseThrow();
         assertTrue(target.startsWith("user@host:/repo::my-job-"));
@@ -78,7 +80,8 @@ class BorgBackupEngineTest {
 
         engine.backup(job, "r1", NO_OP_LOGGER);
 
-        String borgRsh = captured.get(0).env().get("BORG_RSH");
+        CommandSpec createCmd = captured.stream().filter(c -> c.argv().contains("create")).findFirst().orElseThrow();
+        String borgRsh = createCmd.env().get("BORG_RSH");
         assertNotNull(borgRsh);
         assertTrue(borgRsh.contains("-i /secrets/id_rsa"));
         assertTrue(borgRsh.contains("UserKnownHostsFile=/secrets/known_hosts"));
@@ -92,7 +95,8 @@ class BorgBackupEngineTest {
 
         engine.backup(job, "r1", NO_OP_LOGGER);
 
-        assertFalse(captured.get(0).env().containsKey("BORG_RSH"));
+        CommandSpec createCmd = captured.stream().filter(c -> c.argv().contains("create")).findFirst().orElseThrow();
+        assertFalse(createCmd.env().containsKey("BORG_RSH"));
     }
 
     @Test
@@ -134,6 +138,7 @@ class BorgBackupEngineTest {
 
         engine.backup(job, "r1", NO_OP_LOGGER);
 
-        assertFalse(captured.get(0).argv().contains("--compression"));
+        CommandSpec createCmd = captured.stream().filter(c -> c.argv().contains("create")).findFirst().orElseThrow();
+        assertFalse(createCmd.argv().contains("--compression"));
     }
 }

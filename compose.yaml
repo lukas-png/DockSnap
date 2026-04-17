@@ -10,7 +10,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
       # Job definitions — edit jobs.json on the host, restart to reload
-      - ./jobs.json:/config/jobs.json:ro
+      - ./config/jobs.json:/config/jobs.json:ro
 
       # Backup output directory (TAR artifacts land here on the host)
       - ./backups:/backups
@@ -26,7 +26,7 @@ services:
 
       # Optional: SSH key + known_hosts for Borg over SSH
       # - ./secrets/id_rsa:/secrets/id_rsa:ro
-      # - ./secrets/known_hosts:/secrets/known_hosts:ro
+      # - ./secrets/known_hosts:/secrets/known_hosts
     environment:
       PORT: "8080"
       BACKUP_DIR: "/backups"

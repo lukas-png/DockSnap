@@ -7,12 +7,17 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import io.javalin.Javalin;
 import io.javalin.json.JavalinJackson;
 import org.docksnap.agent.JobRunner;
+import org.docksnap.backup.BorgBackupEngine;
 import org.docksnap.config.JobConfigStore;
+import org.docksnap.domain.BackupMode;
 import org.docksnap.domain.Job;
 import org.docksnap.domain.Run;
 import org.docksnap.run.LogBuffer;
 import org.docksnap.run.RunRepository;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 
@@ -23,18 +28,21 @@ public class ApiServer {
     private final JobRunner jobRunner;
     private final RunRepository runs;
     private final LogBuffer logs;
+    private final BorgBackupEngine borgEngine;
     private Javalin app;
 
     public ApiServer(int port,
                      JobConfigStore configStore,
                      JobRunner jobRunner,
                      RunRepository runs,
-                     LogBuffer logs) {
+                     LogBuffer logs,
+                     BorgBackupEngine borgEngine) {
         this.port = port;
         this.configStore = configStore;
         this.jobRunner = jobRunner;
         this.runs = runs;
         this.logs = logs;
+        this.borgEngine = borgEngine;
     }
 
     public void start() {
@@ -67,6 +75,51 @@ public class ApiServer {
             }
             Run run = jobRunner.submit(job);
             ctx.status(202).json(run);
+        });
+
+        app.post("/jobs/{id}/test", ctx -> {
+            String id = ctx.pathParam("id");
+            Job job = configStore.getById(id);
+            if (job == null) {
+                ctx.status(404).json(Map.of("error", "Job not found: " + id));
+                return;
+            }
+            if (job.mode() != BackupMode.BORG) {
+                ctx.status(400).json(Map.of("error", "Test only supported for BORG jobs"));
+                return;
+            }
+            try {
+                List<String> output = borgEngine.testRepo(job);
+                ctx.json(Map.of("ok", true, "output", output));
+            } catch (Exception e) {
+                ctx.status(502).json(Map.of("ok", false, "error", e.getMessage()));
+            }
+        });
+
+        app.post("/jobs/{id}/keyscan", ctx -> {
+            String id = ctx.pathParam("id");
+            Job job = configStore.getById(id);
+            if (job == null) {
+                ctx.status(404).json(Map.of("error", "Job not found: " + id));
+                return;
+            }
+            if (job.mode() != BackupMode.BORG) {
+                ctx.status(400).json(Map.of("error", "keyscan only supported for BORG jobs"));
+                return;
+            }
+            if (job.borg().knownHostsPath() == null || job.borg().knownHostsPath().isBlank()) {
+                ctx.status(400).json(Map.of("error", "knownHostsPath not configured for this job"));
+                return;
+            }
+            try {
+                List<String> lines = borgEngine.keyscan(job);
+                Path kh = Path.of(job.borg().knownHostsPath());
+                Files.createDirectories(kh.getParent());
+                Files.write(kh, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                ctx.json(Map.of("ok", true, "lines", lines, "path", kh.toString()));
+            } catch (Exception e) {
+                ctx.status(502).json(Map.of("ok", false, "error", e.getMessage()));
+            }
         });
 
         app.get("/runs", ctx ->

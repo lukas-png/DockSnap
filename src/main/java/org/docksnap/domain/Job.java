@@ -19,7 +19,10 @@ public record Job(
             String archivePrefix,
             String compression,
             String sshKeyPath,
-            String knownHostsPath
+            String knownHostsPath,
+            Integer sshPort,
+            Integer keep,
+            String encryption
     ) {}
 
     public record UploadTarget(

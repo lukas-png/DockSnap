@@ -90,9 +90,11 @@ public class JobRunner {
             result = engine.backup(job, runId, runLogger);
             runLogger.info(runId, "Backup complete: " + result.artifact() + " (" + result.bytes() + " bytes)");
         } catch (Exception e) {
-            runLogger.error(runId, "Backup failed: " + e.getMessage());
+            String detail = e.getClass().getSimpleName() + ": " + e.getMessage();
+            runLogger.error(runId, "Backup failed: " + detail);
+            e.printStackTrace();
             startContainers(job, runId);
-            runs.update(runs.find(runId).failed(e.getMessage()));
+            runs.update(runs.find(runId).failed(detail));
             return;
         }
 

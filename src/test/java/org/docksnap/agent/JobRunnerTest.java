@@ -64,7 +64,7 @@ class JobRunnerTest {
     @BeforeEach
     void setUp() {
         runs = new InMemoryRunRepository();
-        logs = new LogBuffer();
+        logs = new LogBuffer(null);
         docker = new FakeDockerGateway();
     }
 
